@@ -146,7 +146,7 @@ const __TWEAKS_STYLE = `
   .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
 `;
 
-// ── useTweaks ──────────────────────────────────────────────────────────────
+// ── useTweaks ───────────────────────────────────────────────────────────────
 // Single source of truth for tweak values. setTweak persists via the host
 // (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
 function useTweaks(defaults) {
@@ -240,7 +240,24 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     window.addEventListener('mouseup', up);
   };
 
-  if (!open) return null;
+  if (!open) return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <button
+        aria-label="Abrir panel de vista"
+        onClick={() => setOpen(true)}
+        style={{
+          position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999,
+          width: '40px', height: '40px', borderRadius: '50%',
+          background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none',
+          fontSize: '18px', cursor: 'pointer', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+        }}
+        title="Cambiar vista (Proveedora / Inversores)"
+      >⚙</button>
+    </>
+  );
   return (
     <>
       <style>{__TWEAKS_STYLE}</style>
@@ -1632,19 +1649,4 @@ function App() {
           <TweakRadio label="Vista para" value={tweaks.audience} options={[{label:'Proveedora', value:'proveedora'}, {label:'Inversores', value:'inversores'}]} onChange={v => setTweak('audience', v)}/>
         </TweakSection>
         <TweakSection title="Contenido">
-          <TweakToggle label="Mostrar tagline «A tu orden»" value={tweaks.showTagline} onChange={v => setTweak('showTagline', v)}/>
-          <TweakToggle label="Sección de inversores" value={tweaks.showPitchSection} onChange={v => setTweak('showPitchSection', v)}/>
-        </TweakSection>
-        <TweakSection title="Color">
-          <TweakColor label="Color primario (rose)" value={tweaks.primaryColor} onChange={v => setTweak('primaryColor', v)}/>
-        </TweakSection>
-      </TweaksPanel>
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
-<div id="root"></div>
-</body>
-</html>
+    
