@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Elia â A tu orden.</title>
+<title>Mi Elia — A tu orden.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -18,7 +18,108 @@
 // Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
 // posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
 // individual prototypes don't re-roll it. Ships a consistent set of controls so you
-// don't hand-draw <input type="range">, segmented radios, steppers, etc.ata-on="1"] i{transform:translateX(14px)}
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;width:100%;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
 
   .twk-num{display:flex;align-items:center;height:26px;padding:0 0 0 8px;
     border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
@@ -45,9 +146,9 @@
   .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
 `;
 
-// ââ useTweaks âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── useTweaks ──────────────────────────────────────────────────────────────
 // Single source of truth for tweak values. setTweak persists via the host
-// (__edit_mode_set_keys â host rewrites the EDITMODE block on disk).
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
 function useTweaks(defaults) {
   const [values, setValues] = React.useState(defaults);
   // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
@@ -62,9 +163,9 @@ function useTweaks(defaults) {
   return [values, setTweak];
 }
 
-// ââ TweaksPanel âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
 // Floating shell. Registers the protocol listener BEFORE announcing
-// availability â if the announce ran first, the host's activate could land
+// availability — if the announce ran first, the host's activate could land
 // before our handler exists and the toolbar toggle would silently no-op.
 // The close button posts __edit_mode_dismissed so the host's toolbar toggle
 // flips off in lockstep; the host echoes __deactivate_edit_mode back which
@@ -110,7 +211,88 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     window.addEventListener('message', onMsg);
     window.parent.postMessage({ type: '__edit_mode_available' }, '*');
     return () => window.removeEventListener('message', onMsg);
-  }, []);TweakToggle({ label, value, onChange }) {
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-noncommentable=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
   return (
     <div className="twk-row twk-row-h">
       <div className="twk-lbl"><span>{label}</span></div>
@@ -129,7 +311,7 @@ function TweakRadio({ label, value, options, onChange }) {
   const n = opts.length;
 
   // The active value is read by pointer-move handlers attached for the lifetime
-  // of a drag â ref it so a stale closure doesn't fire onChange for every move.
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
   const valueRef = React.useRef(value);
   valueRef.current = value;
 
@@ -284,7 +466,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ââ NAV ââ */
+/* ── NAV ── */
 nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -359,9 +541,9 @@ nav.scrolled {
   transition: background 0.2s, transform 0.15s;
   text-decoration: none;
 }
-.nav-cta:hover { background: var(--burgundy-mid); transform: translateY(-1px	; }
+.nav-cta:hover { background: var(--burgundy-mid); transform: translateY(-1px); }
 
-/* ââ SECTIONS SHARED ââ */
+/* ── SECTIONS SHARED ── */
 section {
   padding: 100px 48px;
   max-width: 1200px;
@@ -373,7 +555,7 @@ section.full-width {
   padding-right: 0;
 }
 
-/* ââ HERO ââ */
+/* ── HERO ── */
 .hero {
   min-height: 100vh;
   max-width: none;
@@ -556,7 +738,7 @@ section.full-width {
   border: 1px solid rgba(192,123,125,0.15);
 }
 
-/* ââ GAP STRIP ââ */
+/* ── GAP STRIP ── */
 .strip {
   background: var(--burgundy);
   padding: 48px 80px;
@@ -594,7 +776,7 @@ section.full-width {
   background: rgba(192,123,125,0.25);
 }
 
-/* ââ QUÃ HACE ELIA ââ */
+/* ── QUÉ HACE ELIA ── */
 .what-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -683,7 +865,7 @@ section.full-width {
   line-height: 1.7;
 }
 
-/* ââ CHANNELS SECTION ââ */
+/* ── CHANNELS SECTION ── */
 .channels-section {
   background: var(--cream-mid);
   padding: 100px 80px;
@@ -744,7 +926,7 @@ section.full-width {
   margin-top: auto;
 }
 
-/* ââ PRICING / MODEL ââ */
+/* ── PRICING / MODEL ── */
 .model-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -787,7 +969,7 @@ section.full-width {
   line-height: 1.75;
 }
 
-/* ââ VOICE SECTION ââ */
+/* ── VOICE SECTION ── */
 .voice-section {
   background: var(--burgundy);
   padding: 100px 80px;
@@ -831,7 +1013,7 @@ section.full-width {
   align-self: stretch;
 }
 
-/* ââ INVESTOR PITCH ââ */
+/* ── INVESTOR PITCH ── */
 .pitch-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -873,7 +1055,7 @@ section.full-width {
   line-height: 1.5;
 }
 
-/* ââ CTA SECTION ââ */
+/* ── CTA SECTION ── */
 .cta-section {
   background: var(--ink);
   padding: 120px 80px;
@@ -936,7 +1118,7 @@ section.full-width {
   letter-spacing: 0.08em;
 }
 
-/* ââ FOOTER ââ */
+/* ── FOOTER ── */
 footer {
   background: var(--ink);
   border-top: 1px solid rgba(192,123,125,0.1);
@@ -949,7 +1131,7 @@ footer {
 .footer-logo .elia { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--cream-mid); letter-spacing: 0.1em; text-transform: uppercase; }
 .footer-meta { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); opacity: 0.25; font-weight: 200; }
 
-/* ââ ANIMATIONS ââ */
+/* ── ANIMATIONS ── */
 .fade-up {
   opacity: 0;
   transform: translateY(24px);
@@ -969,7 +1151,7 @@ footer {
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
-/* ââ SVG Logo marks ââ */
+/* ── SVG Logo marks ── */
 function EMonogram({ color = '#4A1E25', size = 80 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
@@ -1009,12 +1191,12 @@ function FacebookIcon() {
   );
 }
 
-/* ââ Chat Demo ââ */
+/* ── Chat Demo ── */
 const CHAT_MESSAGES = [
-  { id: 0, side: 'inbound',  sender: 'Valentina', text: 'Hola, Â¿tienen disponibilidad este sÃ¡bado para manicure?', time: '10:02' },
-  { id: 1, side: 'outbound', sender: 'Elia', text: 'Mi amor, claro que sÃ­. Tengo el sÃ¡bado a las 10AM y a las 2PM. Â¿CuÃ¡l te queda mejor?', time: '10:02' },
+  { id: 0, side: 'inbound',  sender: 'Valentina', text: 'Hola, ¿tienen disponibilidad este sábado para manicure?', time: '10:02' },
+  { id: 1, side: 'outbound', sender: 'Elia', text: 'Mi amor, claro que sí. Tengo el sábado a las 10AM y a las 2PM. ¿Cuál te queda mejor?', time: '10:02' },
   { id: 2, side: 'inbound',  sender: 'Valentina', text: 'Las 10AM perfecto', time: '10:03' },
-  { id: 3, side: 'outbound', sender: 'Elia', text: 'Ya quedÃ³. SÃ¡bado 10AM confirmado. Te mando el recordatorio el viernes. A tu orden.', time: '10:03' },
+  { id: 3, side: 'outbound', sender: 'Elia', text: 'Ya quedó. Sábado 10AM confirmado. Te mando el recordatorio el viernes. A tu orden.', time: '10:03' },
 ];
 
 function ChatDemo() {
@@ -1063,7 +1245,7 @@ function ChatDemo() {
   );
 }
 
-/* ââ Fade on scroll ââ */
+/* ── Fade on scroll ── */
 function useFadeUp(ref) {
   useEffect(() => {
     if (!ref.current) return;
@@ -1076,7 +1258,7 @@ function useFadeUp(ref) {
   }, []);
 }
 
-/* ââ NAV ââ */
+/* ── NAV ── */
 function Nav({ activeTab, setActiveTab }) {
   const [scrolled, setScrolled] = useState(false);
 
@@ -1093,7 +1275,7 @@ function Nav({ activeTab, setActiveTab }) {
         <span className="elia">Elia</span>
       </a>
       <ul className="nav-links">
-        {[['#que-hace', 'QuÃ© hace'], ['#canales', 'Canales'], ['#modelo', 'Modelo'], ['#pitch', 'Inversores']].map(([href, label]) => (
+        {[['#que-hace', 'Qué hace'], ['#canales', 'Canales'], ['#modelo', 'Modelo'], ['#pitch', 'Inversores']].map(([href, label]) => (
           <li key={href}><a href={href}>{label}</a></li>
         ))}
       </ul>
@@ -1102,7 +1284,7 @@ function Nav({ activeTab, setActiveTab }) {
   );
 }
 
-/* ââ MAIN APP ââ */
+/* ── MAIN APP ── */
 function App() {
   const { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakToggle, TweakSlider, TweakColor } = window;
 
@@ -1132,13 +1314,13 @@ function App() {
     <div ref={mainRef}>
       <Nav />
 
-      {/* ââ HERO ââ */}
+      {/* ── HERO ── */}
       <section id="hero" className="hero full-width" data-screen-label="01 Hero" style={{ padding: 0 }}>
         <div className="hero-left">
           <div className="hero-eyebrow fade-up">
             <div className="hero-eyebrow-line" style={{ background: rose }}></div>
             <span className="hero-eyebrow-text" style={{ color: rose }}>
-              {tweaks.audience === 'proveedora' ? 'Para profesionales de belleza' : 'Plataforma GaaS Â· Belleza Â· LATAM'}
+              {tweaks.audience === 'proveedora' ? 'Para profesionales de belleza' : 'Plataforma GaaS · Belleza · LATAM'}
             </span>
           </div>
 
@@ -1146,7 +1328,7 @@ function App() {
             {tweaks.audience === 'proveedora' ? (
               <>Tu negocio,<br /><em>siempre</em> en manos<br />de alguien de confianza.</>
             ) : (
-              <>La primera plataforma<br /><em>agÃ©ntica</em> de belleza<br />en LATAM.</>
+              <>La primera plataforma<br /><em>agéntica</em> de belleza<br />en LATAM.</>
             )}
           </h1>
 
@@ -1157,7 +1339,7 @@ function App() {
               background: 'rgba(74,30,37,0.06)',
               borderLeft: '2px solid #4A1E25',
             }}>
-              {['Mercado belleza LATAM: $80B+%, 'Primer GaaS en la categorÃ­a', '0 competidores directos'].map((item, i) => (
+              {['Mercado belleza LATAM: $80B+', 'Primer GaaS en la categoría', '0 competidores directos'].map((item, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#C07B7D', opacity: 0.5, flexShrink: 0 }}></span>}
                   <span style={{
@@ -1172,8 +1354,8 @@ function App() {
 
           <p className="hero-sub fade-up fade-up-d2">
             {tweaks.audience === 'proveedora'
-              ? 'Elia gestiona tu WhatsApp, Instagram y Facebook las 24 horas. Agenda citas, responde clientas, procesa pagos â mientras tÃº haces lo que sabes hacer.'
-              : 'Mi Elia no es un SaaS. Es un GaaS: Agentic as a Service. Los agentes hacen el trabajo. Los proveedores cobran resultados. La categorÃ­a que sigue a SaaS, construida para belleza en LATAM.'
+              ? 'Elia gestiona tu WhatsApp, Instagram y Facebook las 24 horas. Agenda citas, responde clientas, procesa pagos — mientras tú haces lo que sabes hacer.'
+              : 'Mi Elia no es un SaaS. Es un GaaS: Agentic as a Service. Los agentes hacen el trabajo. Los proveedores cobran resultados. La categoría que sigue a SaaS, construida para belleza en LATAM.'
             }
           </p>
 
@@ -1182,7 +1364,7 @@ function App() {
               {tweaks.audience === 'proveedora' ? 'Quiero a Elia en mi negocio' : 'Ver demo'}
             </a>
             <a href="#que-hace" className="btn-ghost">
-              {tweaks.audience === 'proveedora' ? 'Ver a Elia en acciÃ³n' : 'Pitch deck'}
+              {tweaks.audience === 'proveedora' ? 'Ver a Elia en acción' : 'Pitch deck'}
             </a>
           </div>
 
@@ -1244,16 +1426,16 @@ function App() {
         </div>
       </section>
 
-      {/* ââ STRIP ââ */}
+      {/* ── STRIP ── */}
       <div className="strip" data-screen-label="02 Stats strip">
         {[
           { num: '24/7', label: 'Disponibilidad' },
           null,
-          { num: '3', label: 'Canales simultÃ¡neos' },
+          { num: '3', label: 'Canales simultáneos' },
           null,
-          { num: '0', label: 'Horas perdidas en gestiÃ³n' },
+          { num: '0', label: 'Horas perdidas en gestión' },
           null,
-          { num: '$0', label: 'Costo por instalaciÃ³n' },
+          { num: '$0', label: 'Costo por instalación' },
         ].map((item, i) =>
           item === null
             ? <div key={i} className="strip-divider"></div>
@@ -1264,25 +1446,25 @@ function App() {
         )}
       </div>
 
-      {/* ââ QUÃ HACE ELIA ââ */}
-      <section id="que-hace" data-screen-label="03 QuÃ© hace" style={{ padding: '100px 80px' }}>
+      {/* ── QUÉ HACE ELIA ── */}
+      <section id="que-hace" data-screen-label="03 Qué hace" style={{ padding: '100px 80px' }}>
         <div className="what-section">
           <div>
-            <div className="section-label fade-up">CÃ³mo funciona</div>
+            <div className="section-label fade-up">Cómo funciona</div>
             <h2 className="section-heading fade-up fade-up-d1">
               Elia no es una<br />herramienta.<br /><em>Es quien trabaja.</em>
             </h2>
             <p className="section-body fade-up fade-up-d2" style={{ marginTop: 24, maxWidth: 380 }}>
-              No hay dashboard que aprender. No hay app que configurar. Elia entra a tus canales y opera desde el primer dÃ­a â respondiendo, agendando, cobrando â como lo harÃ­a tu mejor empleada.
+              No hay dashboard que aprender. No hay app que configurar. Elia entra a tus canales y opera desde el primer día — respondiendo, agendando, cobrando — como lo haría tu mejor empleada.
             </p>
           </div>
 
           <div className="features-list fade-up fade-up-d1">
             {[
-              { n: '01', title: 'Agenda automÃ¡tica', desc: 'Recibe solicitudes por WhatsApp, Instagram y Facebook. Agenda, confirma y manda recordatorios sin que muevas un dedo.' },
-              { n: '02', title: 'AtenciÃ³n 24/7', desc: 'Responde precios, disponibilidad y dudas a cualquier hora. Nunca una clienta sin respuesta.' },
-              { n: '03', title: 'Pagos integrados', desc: 'Procesa pagos automÃ¡ticamente. Emite recibos. Lleva el registro sin planillas.' },
-              { n: '04', title: 'Reportes del negocio', desc: 'Cada semana, un resumen claro: cuÃ¡nto ganaste, quÃ© servicios venden mÃ¡s, quÃ© clientas volver a contactar.' },
+              { n: '01', title: 'Agenda automática', desc: 'Recibe solicitudes por WhatsApp, Instagram y Facebook. Agenda, confirma y manda recordatorios sin que muevas un dedo.' },
+              { n: '02', title: 'Atención 24/7', desc: 'Responde precios, disponibilidad y dudas a cualquier hora. Nunca una clienta sin respuesta.' },
+              { n: '03', title: 'Pagos integrados', desc: 'Procesa pagos automáticamente. Emite recibos. Lleva el registro sin planillas.' },
+              { n: '04', title: 'Reportes del negocio', desc: 'Cada semana, un resumen claro: cuánto ganaste, qué servicios venden más, qué clientas volver a contactar.' },
             ].map(f => (
               <div key={f.n} className="feature-item">
                 <span className="feature-num">{f.n}</span>
@@ -1296,16 +1478,16 @@ function App() {
         </div>
       </section>
 
-      {/* ââ CANALES ââ */}
+      {/* ── CANALES ── */}
       <div id="canales" className="channels-section" data-screen-label="04 Canales">
         <div className="channels-inner">
           <div className="section-label fade-up">Donde opera Elia</div>
           <h2 className="section-heading fade-up fade-up-d1">Tres canales.<br /><em>Una sola Elia.</em></h2>
           <div className="channels-grid fade-up fade-up-d2">
             {[
-              { icon: WhatsAppIcon, name: 'WhatsApp', desc: 'Responde mensajes, agenda citas, manda recordatorios y procesa pagos directo desde el chat que tus clientas ya usan.', tag: 'MÃ¡s reservas vienen de aquÃ­' },
-              { icon: InstagramIcon, name: 'Instagram', desc: 'Responde DMs y comentarios. Convierte cualquier interacciÃ³n pÃºblica en una reserva privada. El negocio siempre activo.', tag: 'DMs + comentarios' },
-              { icon: FacebookIcon, name: 'Facebook', desc: 'Responde Messenger y comentarios de pÃ¡gina. Capta clientas nuevas en el canal donde te descubren por primera vez.', tag: 'CaptaciÃ³n + retenciÃ³n' },
+              { icon: WhatsAppIcon, name: 'WhatsApp', desc: 'Responde mensajes, agenda citas, manda recordatorios y procesa pagos directo desde el chat que tus clientas ya usan.', tag: 'Más reservas vienen de aquí' },
+              { icon: InstagramIcon, name: 'Instagram', desc: 'Responde DMs y comentarios. Convierte cualquier interacción pública en una reserva privada. El negocio siempre activo.', tag: 'DMs + comentarios' },
+              { icon: FacebookIcon, name: 'Facebook', desc: 'Responde Messenger y comentarios de página. Capta clientas nuevas en el canal donde te descubren por primera vez.', tag: 'Captación + retención' },
             ].map(c => (
               <div key={c.name} className="channel-card">
                 <div className="channel-icon"><c.icon /></div>
@@ -1318,18 +1500,18 @@ function App() {
         </div>
       </div>
 
-      {/* ââ VOICE ââ */}
+      {/* ── VOICE ── */}
       <div className="voice-section" data-screen-label="05 Voz de Elia">
         <div className="voice-inner">
           <div className="section-label fade-up" style={{ color: 'rgba(192,123,125,0.7)' }}>
             <div style={{ width: 28, height: 1, background: rose }}></div>
-            CÃ³mo habla Elia
+            Cómo habla Elia
           </div>
           <div className="voice-grid fade-up fade-up-d1">
             {[
-              { quote: '"Valentina, llevas 4 semanas desde tu Ãºltimo retoque. Marta tiene el sÃ¡bado a las 11AM libre. Â¿Lo confirmo yo?"', attr: 'Recordatorio proactivo a cliente' },
-              { quote: '"Mi amor, cerramos el mes con 47 citas gestionadas. Tu hora mÃ¡s solicitada sigue siendo el martes en la tarde â Â¿abrimos un espacio mÃ¡s?"', attr: 'Reporte mensual a proveedora' },
-              { quote: '"Ya quedÃ³. SÃ¡bado 10AM confirmado. Te mando el recordatorio el viernes. A tu orden."', attr: 'ConfirmaciÃ³n de cita' },
+              { quote: '"Valentina, llevas 4 semanas desde tu último retoque. Marta tiene el sábado a las 11AM libre. ¿Lo confirmo yo?"', attr: 'Recordatorio proactivo a clienta' },
+              { quote: '"Mi amor, cerramos el mes con 47 citas gestionadas. Tu hora más solicitada sigue siendo el martes en la tarde — ¿abrimos un espacio más?"', attr: 'Reporte mensual a proveedora' },
+              { quote: '"Ya quedó. Sábado 10AM confirmado. Te mando el recordatorio el viernes. A tu orden."', attr: 'Confirmación de cita' },
             ].map((v, i) => (
               <React.Fragment key={i}>
                 {i > 0 && <div className="voice-divider"></div>}
@@ -1343,7 +1525,7 @@ function App() {
         </div>
       </div>
 
-      {/* ââ MODELO ââ */}
+      {/* ── MODELO ── */}
       <section id="modelo" data-screen-label="06 Modelo" style={{ padding: '100px 80px' }}>
         <div className="model-section">
           <div>
@@ -1352,19 +1534,19 @@ function App() {
               Pagas solo<br />cuando <em>Elia</em><br />trabaja.
             </h2>
             <p className="section-body fade-up fade-up-d2" style={{ marginTop: 24 }}>
-              Sin suscripciones mensuales fijas. Sin riesgo de pagar por algo que no usas. Mi Elia cobra solo por los resultados que entrega â reservas gestionadas, clientas captadas, pagos procesados.
+              Sin suscripciones mensuales fijas. Sin riesgo de pagar por algo que no usas. Mi Elia cobra solo por los resultados que entrega — reservas gestionadas, clientas captadas, pagos procesados.
             </p>
             <div style={{ marginTop: 32, padding: '20px 24px', background: 'rgba(192,123,125,0.08)', borderLeft: `2px solid ${rose}` }} className="fade-up fade-up-d3">
               <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, fontStyle: 'italic', color: '#7A3540', lineHeight: 1.6 }}>
-                "Ganamos cuando tÃº ganas. Ese es el contrato."
+                "Ganamos cuando tú ganas. Ese es el contrato."
               </span>
             </div>
           </div>
           <div className="model-right fade-up fade-up-d1">
             {[
-              { label: 'Outcome-based', title: 'Por reserva gestionada', desc: 'Un porcentaje pequeÃ±o por cada cita que Elia agenda. Escala con tu negocio, no contra Ã©l.' },
-              { label: 'Resultado', title: 'Por clienta captada', desc: 'Cuando Elia trae una clienta nueva a travÃ©s de Instagram o Facebook, cobramos por ese resultado concreto.' },
-              { label: 'OperaciÃ³n', title: 'Por pago procesado', desc: 'Elia cobra y emite recibos. Retenemos una fracciÃ³n del pago en el momento del cobro â cero fricciÃ³n.' },
+              { label: 'Outcome-based', title: 'Por reserva gestionada', desc: 'Un porcentaje pequeño por cada cita que Elia agenda. Escala con tu negocio, no contra él.' },
+              { label: 'Resultado', title: 'Por clienta captada', desc: 'Cuando Elia trae una clienta nueva a través de Instagram o Facebook, cobramos por ese resultado concreto.' },
+              { label: 'Operación', title: 'Por pago procesado', desc: 'Elia cobra y emite recibos. Retenemos una fracción del pago en el momento del cobro — cero fricción.' },
             ].map(m => (
               <div key={m.title} className="model-card">
                 <span className="model-card-label">{m.label}</span>
@@ -1376,17 +1558,17 @@ function App() {
         </div>
       </section>
 
-      {/* ââ PITCH ââ */}
+      {/* ── PITCH ── */}
       {tweaks.showPitchSection && (
         <section id="pitch" data-screen-label="07 Inversores" style={{ padding: '100px 80px', background: 'var(--warm-white)' }}>
           <div className="pitch-section">
             <div>
               <div className="section-label fade-up">Para inversores</div>
               <h2 className="section-heading fade-up fade-up-d1">
-                GaaS es la<br />categorÃ­a que<br /><em>sigue a SaaS.</em>
+                GaaS es la<br />categoría que<br /><em>sigue a SaaS.</em>
               </h2>
               <p className="section-body fade-up fade-up-d2" style={{ marginTop: 24, maxWidth: 380 }}>
-                SaaS vendÃ­a acceso. GaaS vende outcomes. Estamos construyendo la primera plataforma agÃ©ntica para el mercado de belleza en AmÃ©rica Latina â un mercado de +$80B con penetraciÃ³n digital incipiente y cero competidor en la categorÃ­a.
+                SaaS vendía acceso. GaaS vende outcomes. Estamos construyendo la primera plataforma agéntica para el mercado de belleza en América Latina — un mercado de +$80B con penetración digital incipiente y cero competidor en la categoría.
               </p>
               <div style={{ marginTop: 36 }} className="fade-up fade-up-d3">
                 <a href="#cta" className="btn-primary" style={{ background: '#4A1E25' }}>Conversar con el equipo</a>
@@ -1394,10 +1576,10 @@ function App() {
             </div>
             <div className="pitch-stat-grid fade-up fade-up-d1">
               {[
-                { n: '$80B+', label: 'Mercado belleza LATAM', sub: 'TAM estimado en la regiÃ³n' },
-                { n: 'Pre-seed', label: 'Etapa de financiamiento', sub: 'CORFO Â· BID Lab Â· VCs AI' },
-                { n: '0', label: 'Competidores GaaS', sub: 'Primera plataforma agÃ©ntica de belleza en LATAM' },
-                { n: '3', label: 'Canales operando dÃ­a 1', sub: 'WhatsApp + Instagram + Facebook' },
+                { n: '$80B+', label: 'Mercado belleza LATAM', sub: 'TAM estimado en la región' },
+                { n: 'Pre-seed', label: 'Etapa de financiamiento', sub: 'CORFO · BID Lab · VCs AI' },
+                { n: '0', label: 'Competidores GaaS', sub: 'Primera plataforma agéntica de belleza en LATAM' },
+                { n: '3', label: 'Canales operando día 1', sub: 'WhatsApp + Instagram + Facebook' },
               ].map(s => (
                 <div key={s.n} className="pitch-stat">
                   <span className="stat-n">{s.n}</span>
@@ -1410,7 +1592,7 @@ function App() {
         </section>
       )}
 
-      {/* ââ CTA ââ */}
+      {/* ── CTA ── */}
       <div id="cta" className="cta-section" data-screen-label="08 CTA">
         <div className="cta-inner">
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: rose, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 40px ${rose}30` }}>
@@ -1421,8 +1603,8 @@ function App() {
           </h2>
           <p className="cta-sub fade-up fade-up-d1">
             {tweaks.audience === 'proveedora'
-              ? 'Elia estÃ¡ lista para trabajar por ti. Sin contratos anuales, sin riesgo. Empieza esta semana.'
-              : 'Ãnete a la lista de proveedoras early adopters. Primeras en acceder, primeras en crecer.'
+              ? 'Elia está lista para trabajar por ti. Sin contratos anuales, sin riesgo. Empieza esta semana.'
+              : 'Únete a la lista de proveedoras early adopters. Primeras en acceder, primeras en crecer.'
             }
           </p>
           <a href="mailto:hola@mielia.app" className="btn-rose fade-up fade-up-d2" style={{ background: rose }}>
@@ -1434,24 +1616,24 @@ function App() {
         </div>
       </div>
 
-      {/* ââ FOOTER ââ */}
+      {/* ── FOOTER ── */}
       <footer>
         <div className="footer-logo">
           <span className="mi">mi </span>
           <span className="elia">Elia</span>
         </div>
-        <span className="footer-meta">mielia.app Â· 2026</span>
-        <span className="footer-meta">GaaS Â· Belleza Â· LATAM</span>
+        <span className="footer-meta">mielia.app · 2026</span>
+        <span className="footer-meta">GaaS · Belleza · LATAM</span>
       </footer>
 
-      {/* ââ TWEAKS ââ */}
+      {/* ── TWEAKS ── */}
       <TweaksPanel>
         <TweakSection title="Audiencia">
           <TweakRadio label="Vista para" value={tweaks.audience} options={[{label:'Proveedora', value:'proveedora'}, {label:'Inversores', value:'inversores'}]} onChange={v => setTweak('audience', v)}/>
         </TweakSection>
         <TweakSection title="Contenido">
-          <TweakToggle label="Mostrar tagline Â«A tu ordenÂ»" value={tweaks.showTagline} onChange={v => setTweak('showTagline', v)}/>
-          <TweakToggle label="SecciÃ³n de inversores" value={tweaks.showPitchSection} onChange={v => setTweak('showPitchSection', v)}/>
+          <TweakToggle label="Mostrar tagline «A tu orden»" value={tweaks.showTagline} onChange={v => setTweak('showTagline', v)}/>
+          <TweakToggle label="Sección de inversores" value={tweaks.showPitchSection} onChange={v => setTweak('showPitchSection', v)}/>
         </TweakSection>
         <TweakSection title="Color">
           <TweakColor label="Color primario (rose)" value={tweaks.primaryColor} onChange={v => setTweak('primaryColor', v)}/>
