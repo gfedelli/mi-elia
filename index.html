@@ -1345,7 +1345,96 @@ function App() {
             {tweaks.audience === 'proveedora' ? (
               <>Tu negocio,<br /><em>siempre</em> en manos<br />de alguien de confianza.</>
             ) : (
-              <>La primera plataforma<br /><em>agéntica</em> de belleza<br />en LATAM.</>
+              <>La primer  </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Fade on scroll ── */
+function useFadeUp(ref) {
+  useEffect(() => {
+    if (!ref.current) return;
+    const els = ref.current.querySelectorAll('.fade-up');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+}
+
+/* ── NAV ── */
+function Nav({ activeTab, setActiveTab }) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handler);
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
+
+  return (
+    <nav className={scrolled ? 'scrolled' : ''}>
+      <a href="#hero" className="nav-logo">
+        <span className="mi">mi</span>
+        <span className="elia">Elia</span>
+      </a>
+      <ul className="nav-links">
+        {[['#que-hace', 'Qué hace'], ['#canales', 'Canales'], ['#modelo', 'Modelo'], ['#pitch', 'Inversores']].map(([href, label]) => (
+          <li key={href}><a href={href}>{label}</a></li>
+        ))}
+      </ul>
+      <a href="#cta" className="nav-cta">Quiero a Elia</a>
+    </nav>
+  );
+}
+
+/* ── MAIN APP ── */
+function App() {
+  const { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakToggle, TweakSlider, TweakColor } = window;
+
+  const [tweaks, setTweak] = useTweaks(/*EDITMODE-BEGIN*/{
+    "audience": "proveedora",
+    "heroVariant": "split",
+    "showTagline": true,
+    "primaryColor": "#C07B7D",
+    "showPitchSection": true
+  }/*EDITMODE-END*/);
+
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    if (!mainRef.current) return;
+    const els = mainRef.current.querySelectorAll('.fade-up');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [tweaks]);
+
+  const rose = tweaks.primaryColor || '#C07B7D';
+
+  return (
+    <div ref={mainRef}>
+      <Nav />
+
+      {/* ── HERO ── */}
+      <section id="hero" className="hero full-width" data-screen-label="01 Hero" style={{ padding: 0 }}>
+        <div className="hero-left">
+          <div className="hero-eyebrow fade-up">
+            <div className="hero-eyebrow-line" style={{ background: rose }}></div>
+            <span className="hero-eyebrow-text" style={{ color: rose }}>
+              {tweaks.audience === 'proveedora' ? 'Para profesionales de belleza' : 'Plataforma GaaS · Belleza · LATAM'}
+            </span>
+          </div>
+
+          <h1 className="hero-headline fade-up fade-up-d1">
+            {tweaks.audience === 'proveedora' ? (
+              <>Tu negocio,<br /><em>siempre</em> en manos<br />de alguien de confianza.</>
+            ) : (
+              <>La primera plataforma<br /><em>agóntica</em> de belleza<br />en LATAM.</>
             )}
           </h1>
 
@@ -1400,7 +1489,17 @@ function App() {
           <div className="hero-bg-deco">
             <div className="hero-bg-circle" style={{ width: 480, height: 480, top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}></div>
             <div className="hero-bg-circle" style={{ width: 320, height: 320, top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }}></div>
+        </div>
+        <div className="hero-right-inner">
+          <div className="hero-e-mark">
+            <EMonogram color="rgba(237,216,212,0.2)" size={160} />
           </div>
+          <ChatDemo />
+        </div>
+      </div>
+    </section>
+
+    </div>
 
           <div className="hero-right-inner">
             {/* E monogram */}
@@ -1649,4 +1748,63 @@ function App() {
           <TweakRadio label="Vista para" value={tweaks.audience} options={[{label:'Proveedora', value:'proveedora'}, {label:'Inversores', value:'inversores'}]} onChange={v => setTweak('audience', v)}/>
         </TweakSection>
         <TweakSection title="Contenido">
-    
+          <TweakToggle label="Mostrar tagline «A tu orden»" value={tweaks.showTagline} onChange={v => setTweak('showTagline', v)}/>
+          <TweakToggle label="Sección de inversores" value={tweaks.showPitchSection} onChange={v => setTweak('showPitchSection', v)}/>
+        </TweakSection>
+        <TweakSection title="Color">
+          <TweakColor label="Color primario (rose)" value={tweaks.primaryColor} onChange={v => setTweak('primaryColor', v)}/>
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<div id="root"></div>
+</body>
+</html>
+    : 'Únete a la lista de proveedoras early adopters. Primeras en acceder, primeras en crecer.'
+            }
+          </p>
+          <a href="mailto:hola@mielia.app" className="btn-rose fade-up fade-up-d2" style={{ background: rose }}>
+            {tweaks.audience === 'proveedora' ? 'Quiero a Elia' : 'Agendar llamada'}
+          </a>
+          {tweaks.showTagline && (
+            <span className="cta-tagline fade-up fade-up-d3">A tu orden.</span>
+          )}
+        </div>
+      </div>
+
+      {/* ── FOOTER ── */}
+      <footer>
+        <div className="footer-logo">
+          <span className="mi">mi </span>
+          <span className="elia">Elia</span>
+        </div>
+        <span className="footer-meta">mielia.app · 2026</span>
+        <span className="footer-meta">GaaS · Belleza · LATAM</span>
+      </footer>
+
+      {/* ── TWEAKS ── */}
+      <TweaksPanel>
+        <TweakSection title="Audiencia">
+          <TweakRadio label="Vista para" value={tweaks.audience} options={[{label:'Proveedora', value:'proveedora'}, {label:'Inversores', value:'inversores'}]} onChange={v => setTweak('audience', v)}/>
+        </TweakSection>
+        <TweakSection title="Contenido">
+          <TweakToggle label="Mostrar tagline «A tu orden»" value={tweaks.showTagline} onChange={v => setTweak('showTagline', v)}/>
+          <TweakToggle label="Sección de inversores" value={tweaks.showPitchSection} onChange={v => setTweak('showPitchSection', v)}/>
+        </TweakSection>
+        <TweakSection title="Color">
+          <TweakColor label="Color primario (rose)" value={tweaks.primaryColor} onChange={v => setTweak('primaryColor', v)}/>
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<div id="root"></div>
+</body>
+</html>
