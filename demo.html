@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mi Elia — Así lo vive tu clienta</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose: #C4787A;
+    --cream: #F5EDE3;
+    --burgundy: #5C2D35;
+    --light-rose: #f0dada;
+    --dark: #3a1a20;
+    --gray: #8a8a8a;
+    --wa-green: #25D366;
+    --wa-bubble-out: #DCF8C6;
+    --wa-bubble-in: #ffffff;
+    --wa-bg: #ECE5DD;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: var(--burgundy);
+    padding: 16px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header .logo { color: var(--cream); font-size: 22px; letter-spacing: 0.05em; }
+  .site-header .logo span { font-style: italic; color: var(--rose); }
+  .site-header .tagline { color: #d4a8b0; font-size: 11px; letter-spacing: 0.1em; margin-top: 2px; }
+
+  /* INTRO */
+  .intro {
+    background: var(--burgundy);
+    padding: 32px 24px 40px;
+    text-align: center;
+    color: var(--cream);
+  }
+  .intro h1 { font-size: 26px; line-height: 1.3; margin-bottom: 12px; }
+  .intro h1 em { color: var(--rose); font-style: italic; }
+  .intro p { font-size: 15px; color: #d4a8b0; line-height: 1.6; }
+
+  /* SCENE */
+  .scene {
+    padding: 32px 20px 16px;
+  }
+  .scene-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .scene-num {
+    width: 28px; height: 28px;
+    background: var(--rose);
+    border-radius: 50%;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .scene-title { font-size: 18px; color: var(--burgundy); font-weight: 600; }
+  .scene-sub { font-size: 13px; color: var(--gray); margin-top: 2px; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #d4b8b8, transparent);
+    margin: 8px 20px 0;
+  }
+
+  /* PHONE MOCKUP */
+  .phone {
+    background: #1a1a1a;
+    border-radius: 36px;
+    padding: 10px;
+    max-width: 340px;
+    margin: 0 auto;
+    box-shadow: 0 20px 60px rgba(92,45,53,0.25);
+  }
+  .phone-screen {
+    background: var(--wa-bg);
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: 480px;
+  }
+
+  /* WHATSAPP */
+  .wa-header {
+    background: #075E54;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wa-back { color: white; font-size: 20px; opacity: 0.8; }
+  .wa-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--rose);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .wa-info { flex: 1; }
+  .wa-name { color: white; font-size: 15px; font-weight: 600; }
+  .wa-status { color: #b2dfdb; font-size: 11px; }
+  .wa-icons { color: white; opacity: 0.8; font-size: 18px; display: flex; gap: 14px; }
+
+  .wa-body {
+    padding: 10px 10px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .msg-date {
+    text-align: center;
+    font-size: 11px;
+    color: #6b7c85;
+    background: rgba(255,255,255,0.6);
+    padding: 3px 10px;
+    border-radius: 10px;
+    align-self: center;
+    margin: 6px 0;
+  }
+
+  .bubble {
+    max-width: 82%;
+    padding: 8px 10px 6px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.45;
+    position: relative;
+    word-wrap: break-word;
+  }
+  .bubble-out {
+    background: var(--wa-bubble-out);
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+  }
+  .bubble-in {
+    background: var(--wa-bubble-in);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .bubble-time {
+    font-size: 10px;
+    color: #8a9aa0;
+    text-align: right;
+    margin-top: 2px;
+  }
+  .bubble-out .bubble-time { color: #5a9a75; }
+  .bubble em { color: var(--burgundy); font-style: italic; }
+  .bubble strong { color: var(--burgundy); }
+
+  /* TYPING */
+  .typing {
+    background: white;
+    border-radius: 18px;
+    padding: 10px 14px;
+    align-self: flex-start;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    background: #aaa;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+  }
+
+  /* PORTAL CARD */
+  .portal-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(92,45,53,0.12);
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .portal-header {
+    background: var(--burgundy);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .portal-header-logo { color: var(--cream); font-size: 14px; letter-spacing: 0.05em; }
+  .portal-header-logo em { color: var(--rose); font-style: italic; }
+  .portal-search {
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 6px 12px;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .portal-filters {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-chip {
+    background: var(--light-rose);
+    color: var(--burgundy);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .filter-chip.active { background: var(--rose); color: white; }
+
+  .provider-card {
+    margin: 8px 12px;
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .provider-card.featured { background: #fdf0f0; border: 1.5px solid var(--light-rose); }
+  .prov-avatar {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    background: var(--rose);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 20px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .prov-info { flex: 1; }
+  .prov-name { font-size: 15px; font-weight: 600; color: var(--burgundy); }
+  .prov-service { font-size: 12px; color: var(--gray); }
+  .prov-stars { font-size: 12px; color: #f0a830; margin-top: 2px; }
+  .prov-price { font-size: 13px; color: var(--rose); font-weight: 600; text-align: right; }
+  .prov-avail { font-size: 11px; color: #5a9a75; text-align: right; margin-top: 2px; }
+  .badge-rec {
+    font-size: 10px;
+    background: var(--rose);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  /* SURVEY */
+  .survey-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 340px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(92,45,53,0.1);
+  }
+  .survey-emoji { font-size: 32px; text-align: center; margin-bottom: 8px; }
+  .survey-q { font-size: 16px; color: var(--burgundy); text-align: center; margin-bottom: 16px; font-weight: 500; }
+  .survey-options { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .survey-opt {
+    padding: 10px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    border: 1.5px solid var(--light-rose);
+    color: var(--burgundy);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .survey-opt:hover, .survey-opt.selected { background: var(--rose); color: white; border-color: var(--rose); }
+  .survey-note { font-size: 12px; color: var(--gray); text-align: center; margin-top: 12px; }
+
+  /* NARRATIVE BOX */
+  .narrative {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0 20px;
+    border-left: 3px solid var(--rose);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--dark);
+  }
+  .narrative strong { color: var(--burgundy); }
+
+  /* CTA FINAL */
+  .cta-final {
+    background: var(--burgundy);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--cream);
+    margin-top: 16px;
+  }
+  .cta-final h2 { font-size: 22px; margin-bottom: 12px; }
+  .cta-final h2 em { color: var(--rose); font-style: italic; }
+  .cta-final p { color: #d4a8b0; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .btn-cta {
+    background: var(--rose);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    letter-spacing: 0.02em;
+  }
+  .btn-secondary {
+    color: #d4a8b0;
+    font-size: 13px;
+    text-decoration: none;
+    display: block;
+    margin-top: 14px;
+  }
+
+  /* STEP INDICATOR */
+  .steps-bar {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px 0 8px;
+  }
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--light-rose);
+  }
+  .step-dot.active { background: var(--rose); width: 18px; border-radius: 3px; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="logo">mi <span>ELIA</span></div>
+  <div class="tagline">así lo vive tu clienta</div>
+</div>
+
+<!-- INTRO -->
+<div class="intro">
+  <h1>Valentina necesita<br>manicure para <em>la boda</em><br>de su hermana</h1>
+  <p>Mira cómo Elia la acompaña — desde que la descubre hasta que ya no puede imaginarse sin ella.</p>
+</div>
+
+<div class="steps-bar">
+  <div class="step-dot active"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+</div>
+
+<!-- ESCENA 1: EL PORTAL -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num">1</div>
+    <div>
+      <div class="scene-title">Valentina está mirando opciones</div>
+      <div class="scene-sub">Entra al portal de Mi Elia desde Instagram</div>
+    </div>
+  </div>
+
+  <div class="portal-card">
+    <div class="portal-header">
+      <div class="portal-header-logo">mi <em>ELIA</em></div>
+      <div class="portal-search">🔍 Manicure en Providencia...</div>
+    </div>
+    <div class="portal-filters">
+      <div class="filter-chip active">💅 Manicure</div>
+      <div class="filter-chip">✂️ Peluquería</div>
+      <div class="filter-chip">💆 Masajes</div>
+      <div class="filter-chip">👁️ Cejas</div>
+    </div>
+
+    <div style="padding: 4px 12px 6px; font-size: 11px; color: var(--gray);">
+      ⭐ Recomendadas por amigas · Providencia
+    </div>
+
+    <div class="provider-card featured">
+      <div class="prov-avatar">M</div>
+      <div class="prov-info">
+        <div class="prov-name">Marta Rodríguez <span class="badge-rec">amiga</span></div>
+        <div class="prov-service">Manicure · Gel · Nail art</div>
+        <div class="prov-stars">★★★★★ (48 reseñas)</div>
+      </div>
+      <div>
+        <div class="prov-price">$18.000</div>
+        <div class="prov-avail">Hoy libre</div>
+      </div>
+    </div>
+
+    <div class="provider-card">
+      <div class="prov-avatar" style="background:#9a7aad;">C</div>
+      <div class="prov-info">
+        <div class="prov-name">Carmen Silva</div>
+        <div class="prov-service">Manicure · Spa de manos</div>
+        <div class="prov-stars">★★★★☆ (31 reseñas)</div>
+      </div>
+      <div>
+        <div class="prov-price">$15.000</div>
+        <div class="prov-avail" style="color:var(--gray);">Jue disponible</div>
+      </div>
+    </div>
+
+    <div style="padding: 12px; text-align: center;">
+      <div style="font-size: 12px; color: var(--rose); font-weight: 500;">Ver 24 profesionales más →</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ESCENA 2: PRIMER CONTACTO -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num">2</div>
+    <div>
+      <div class="scene-title">Valentina escribe a las 11 PM</div>
+      <div class="scene-sub">Marta está durmiendo. Elia responde en segundos.</div>
+    </div>
+  </div>
+
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="wa-header">
+        <div class="wa-back">‹</div>
+        <div class="wa-avatar">E</div>
+        <div class="wa-info">
+          <div class="wa-name">Elia · Marta's Nails</div>
+          <div class="wa-status">en línea</div>
+        </div>
+        <div class="wa-icons">📞 ⋮</div>
+      </div>
+      <div class="wa-body">
+        <div class="msg-date">Hoy · 22:47</div>
+
+        <div class="bubble bubble-out">
+          Hola! Quiero hacerme las uñas para una boda, ¿tienen disponibilidad para el fin de semana?
+          <div class="bubble-time">22:47 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Mi amor, ¡qué buena ocasión! 🎊 Claro que sí, Marta tiene disponibilidad este fin de semana. Te cuento las opciones:
+          <br><br>
+          📅 <strong>Sábado 10 AM</strong><br>
+          📅 <strong>Sábado 2 PM</strong><br>
+          📅 <strong>Domingo 11 AM</strong>
+          <br><br>
+          ¿Cuál te queda mejor? También cuéntame un poco más — ¿tienes algo en mente para el diseño?
+          <div class="bubble-time">22:47</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          El sábado a las 10! Y me gustaría algo elegante, tonos nude o francés
+          <div class="bubble-time">22:49 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Perfecto. Marta es especialista en ese estilo — tiene un francés moderno con línea fina que queda hermoso para bodas. 💅
+          <br><br>
+          Para confirmar tu cita, el servicio de manicure gel tiene un valor de <strong>$18.000</strong>. Puedes reservar con el 50% ahora — así tu hora queda asegurada.
+          <br><br>
+          ¿Te envío el link de pago?
+          <div class="bubble-time">22:49</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          Sí, mándalo 😊
+          <div class="bubble-time">22:50 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Ya quedó 🎉
+          <br><br>
+          ✅ <strong>Sábado · 10 AM</strong><br>
+          📍 Providencia (dirección confirmada por Marta)<br>
+          💳 Reserva de $9.000 recibida
+          <br><br>
+          Te mando un recordatorio el viernes en la noche. A tu orden, Valentina.
+          <div class="bubble-time">22:51</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ESCENA 3: RECORDATORIO -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num">3</div>
+    <div>
+      <div class="scene-title">El viernes en la noche</div>
+      <div class="scene-sub">Elia recuerda. Valentina no tiene que acordarse de nada.</div>
+    </div>
+  </div>
+
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="wa-header">
+        <div class="wa-back">‹</div>
+        <div class="wa-avatar">E</div>
+        <div class="wa-info">
+          <div class="wa-name">Elia · Marta's Nails</div>
+          <div class="wa-status">en línea</div>
+        </div>
+        <div class="wa-icons">📞 ⋮</div>
+      </div>
+      <div class="wa-body">
+        <div class="msg-date">Viernes · 19:30</div>
+
+        <div class="bubble bubble-in">
+          Valentina, te recuerdo que mañana tienes tu cita con Marta a las 10 AM ✨
+          <br><br>
+          📍 Dirección: Av. Providencia 1234, depto 52<br>
+          🔔 Te recomiendo llegar 5 minutos antes
+          <br><br>
+          ¿Llevas alguna referencia de diseño? Marta puede guiarte si necesitas ideas. ¡Mañana vas a quedar espectacular para la boda! 💍
+          <div class="bubble-time">19:30</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          Gracias!! Ya tenía guardadas unas fotos de Pinterest 🥰
+          <div class="bubble-time">19:45 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Perfecto, llévalas. Marta va a adorar verlas. ¡Hasta mañana! A tu orden.
+          <div class="bubble-time">19:45</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ESCENA 4: POST SERVICIO -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num">4</div>
+    <div>
+      <div class="scene-title">Después de la sesión</div>
+      <div class="scene-sub">Elia pregunta. Sin presión.</div>
+    </div>
+  </div>
+
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="wa-header">
+        <div class="wa-back">‹</div>
+        <div class="wa-avatar">E</div>
+        <div class="wa-info">
+          <div class="wa-name">Elia · Marta's Nails</div>
+          <div class="wa-status">en línea</div>
+        </div>
+        <div class="wa-icons">📞 ⋮</div>
+      </div>
+      <div class="wa-body">
+        <div class="msg-date">Sábado · 12:15</div>
+
+        <div class="bubble bubble-in">
+          Valentina, espero que hayas quedado encantada con tus uñas 💅
+          <br><br>
+          ¿Cómo estuvo tu experiencia con Marta hoy?
+          <div class="bubble-time">12:15</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          Quedé súper contenta!! El francés quedó perfecto, exactamente lo que quería para la boda 😍
+          <div class="bubble-time">12:20 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Qué alegría 🎊 Marta va a estar feliz de saberlo.
+          <br><br>
+          ¿Quieres que te avise cuando sea hora de tu próximo retoque? El gel dura entre 3 y 4 semanas.
+          <div class="bubble-time">12:21</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          Sí! Y si puedes avisarme antes de la boda también, es en 3 semanas 🙏
+          <div class="bubble-time">12:22 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Anotado. Ya quedó en mi agenda — te escribo una semana antes de la boda para que llegues impecable. A tu orden, Valentina 🌸
+          <div class="bubble-time">12:22</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ESCENA 5: REENGANCHE PROACTIVO -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num">5</div>
+    <div>
+      <div class="scene-title">3 semanas después</div>
+      <div class="scene-sub">Valentina no tuvo que recordar nada. Elia sí.</div>
+    </div>
+  </div>
+
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="wa-header">
+        <div class="wa-back">‹</div>
+        <div class="wa-avatar">E</div>
+        <div class="wa-info">
+          <div class="wa-name">Elia · Marta's Nails</div>
+          <div class="wa-status">en línea</div>
+        </div>
+        <div class="wa-icons">📞 ⋮</div>
+      </div>
+      <div class="wa-body">
+        <div class="msg-date">3 semanas después · 10:00</div>
+
+        <div class="bubble bubble-in">
+          Mi amor, la boda de tu hermana es en una semana 💍✨
+          <br><br>
+          Marta tiene disponibilidad este <strong>jueves a las 6 PM</strong> o el <strong>sábado a las 11 AM</strong> para que llegues con las uñas perfectas.
+          <br><br>
+          ¿Cuál te queda mejor? Lo confirmo yo.
+          <div class="bubble-time">10:00</div>
+        </div>
+
+        <div class="bubble bubble-out">
+          El jueves!! 😍 gracias por acordarte
+          <div class="bubble-time">10:03 ✓✓</div>
+        </div>
+
+        <div class="bubble bubble-in">
+          Perfecto. <strong>Jueves · 6 PM</strong> con Marta, confirmado 🎉
+          <br><br>
+          ¿Mismo diseño o algo diferente para la boda?
+          <div class="bubble-time">10:03</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ENCUESTA -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="scene-num" style="background: var(--burgundy);">✓</div>
+    <div>
+      <div class="scene-title">Y así se queda para siempre</div>
+      <div class="scene-sub">No porque se lo pediste. Porque la cuidaron.</div>
+    </div>
+  </div>
+
+  <div class="narrative">
+    Valentina no buscó a Marta en Google. <strong>Una amiga la recomendó en el portal.</strong><br><br>
+    Valentina no tuvo que llamar ni esperar. <strong>Elia respondió a las 11 PM.</strong><br><br>
+    Valentina no tuvo que acordarse de la boda. <strong>Elia lo recordó por ella.</strong><br><br>
+    Valentina no volvió porque Marta le pidió que volviera. <strong>Volvió porque nadie la había cuidado así antes.</strong>
+  </div>
+</div>
+
+<!-- CTA FINAL -->
+<div class="cta-final">
+  <h2>Esto es lo que<br><em>Mi Elia</em> hace<br>por tu negocio</h2>
+  <p>Elia trabaja mientras tú trabajas. Recuerda mientras tú olvidas. Y cuida a tus clientas como si fueran las tuyas propias.</p>
+  <a href="https://gfedelli.github.io/mi-elia/" class="btn-cta">Quiero a Elia en mi negocio</a>
+  <a href="https://gfedelli.github.io/mi-elia/" class="btn-secondary">Ver más sobre Mi Elia →</a>
+</div>
+
+</body>
+</html>
